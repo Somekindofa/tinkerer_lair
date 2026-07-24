@@ -1,0 +1,109 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const REPO = 'Somekindofa/tinkerer_lair';
+const newIssueUrl = `https://github.com/${REPO}/issues/new?template=suggestion.yml&labels=suggestion`;
+---
+
+<BaseLayout title="Suggest & vote" description="Suggest the next interactive component and vote on what ships next.">
+  <section class="prose">
+    <p class="ui eyebrow">Suggest &amp; vote</p>
+    <h1>What should I build next?</h1>
+    <p>
+      Suggestions and voting run entirely on GitHub Issues — no account here,
+      no separate login. Open a suggestion, and anyone (including you) votes
+      by reacting <strong>👍</strong> on the issue itself. The leaderboard
+      below is a snapshot refreshed every few hours.
+    </p>
+    <a class="button" href={newIssueUrl} target="_blank" rel="noopener">Suggest a component on GitHub →</a>
+  </section>
+
+  <section class="prose leaderboard">
+    <h2>Current standings</h2>
+    <p class="ui meta" id="updated-at">Loading…</p>
+    <ol id="leaderboard-list" class="ui"></ol>
+  </section>
+</BaseLayout>
+
+<script is:inline define:vars={{ base: import.meta.env.BASE_URL }}>
+  async function loadLeaderboard() {
+    const list = document.getElementById('leaderboard-list');
+    const updatedAt = document.getElementById('updated-at');
+    if (!list || !updatedAt) return;
+
+    try {
+      const res = await fetch(`${base}suggestions.json`, { cache: 'no-store' });
+      const data = await res.json();
+      const suggestions = (data.suggestions ?? []).sort((a, b) => b.votes - a.votes);
+
+      updatedAt.textContent = data.updatedAt
+        ? `Last updated ${new Date(data.updatedAt).toLocaleString()}`
+        : 'No snapshot yet — check back after the first sync.';
+
+      if (suggestions.length === 0) {
+        list.innerHTML = '<li>No suggestions yet — be the first.</li>';
+        return;
+      }
+
+      list.innerHTML = suggestions
+        .map(
+          (s) => `
+        <li>
+          <a href="${s.url}" target="_blank" rel="noopener">${s.title}</a>
+          <span class="votes">${s.votes} 👍</span>
+        </li>`
+        )
+        .join('');
+    } catch {
+      updatedAt.textContent = 'Could not load the leaderboard right now.';
+    }
+  }
+
+  loadLeaderboard();
+</script>
+
+<style>
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.78rem;
+    color: var(--accent);
+    margin: 2.5rem 0 0.5rem;
+  }
+  .button {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.6rem 1.2rem;
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-radius: var(--radius);
+    text-decoration: none;
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+  }
+  .leaderboard {
+    padding-bottom: 4rem;
+  }
+  #leaderboard-list {
+    list-style: none;
+    margin: 1rem 0 0;
+    padding: 0;
+  }
+  #leaderboard-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--hairline);
+    font-size: 0.9rem;
+  }
+  #leaderboard-list a {
+    color: var(--ink);
+  }
+  .votes {
+    color: var(--ink-secondary);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    margin-left: 1rem;
+  }
+</style>
