@@ -13,6 +13,7 @@
 
   --accent: #2a78d6;
   --accent-ink: #ffffff;
+  --data-red: #e34948;
 
   --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
   --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -34,6 +35,7 @@
     --border: rgba(255, 255, 255, 0.1);
     --accent: #3987e5;
     --accent-ink: #0b0b0b;
+    --data-red: #e66767;
   }
 }
 
@@ -48,6 +50,7 @@
   --border: rgba(255, 255, 255, 0.1);
   --accent: #3987e5;
   --accent-ink: #0b0b0b;
+  --data-red: #e66767;
 }
 
 * {

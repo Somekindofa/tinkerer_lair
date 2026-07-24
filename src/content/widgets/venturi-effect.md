@@ -1,7 +1,8 @@
 ---
 title: The Venturi Effect
 description: Squeeze a pipe and the fluid speeds up — but why does the pressure drop? Drag the constriction and watch Bernoulli's equation play out live.
-date: 2026-07-27
+date: 2026-07-24
+updated: 2026-07-24
 tags: [fluids, mechanical]
 featured: true
 ---
@@ -53,5 +54,6 @@ Since $v_2 > v_1$ at the constriction, $P_2 < P_1$ — the throat is always
 at lower pressure than the inlet, and by how much depends only on the
 velocity ratio set by the geometry.
 
-Drag the constriction below to see both equations play out with live
-numbers.
+Adjust the inlet speed and the two areas below to see both equations play
+out with live numbers on the diagram itself — and check the angled view
+underneath for a sense of the tube's actual shape.
