@@ -19,11 +19,31 @@ Built with [Astro](https://astro.build), hosted on GitHub Pages.
 
 ## Adding a new widget
 
+Every widget follows the same shape — equations before the demo, not just an
+animation. Use `venturi-effect` as the reference implementation.
+
 1. Add `src/content/widgets/<slug>.md` with frontmatter (`title`,
-   `description`, `date`, `tags`, `featured`) and a short prose explainer.
+   `description`, `date`, `tags`, `featured`) and a body with, in order:
+   - a short intro paragraph (what the phenomenon is),
+   - a `## What's this for?` section — one tight paragraph, 2-3 named
+     real-world applications, not a lecture,
+   - a `## The equations` section with the governing formula(s) written as
+     KaTeX (`$...$` inline, `$$...$$` display) and a line or two of
+     derivation/interpretation.
 2. Add `src/islands/<slug>.ts` with a `mount()` function for the interactive
-   part.
-3. Add `src/pages/widgets/<slug>.astro` modeled on `venturi-effect.astro`.
+   part (plain TS + Canvas/SVG, no framework). Where the widget has a
+   headline equation, render it live with `katex.render(tex, el, {
+   throwOnError: false, displayMode: true })`, substituting the current
+   numbers into the LaTeX string on every interaction — the equation *is*
+   the readout, not a separate stats line next to it.
+3. Add `src/pages/widgets/<slug>.astro` modeled on `venturi-effect.astro`:
+   content renders first (intro → applications → equations), the
+   interactive stage comes after, with containers for the live equations
+   wired into `mount()`.
+
+Math rendering (`remark-math` + `rehype-katex`) is already wired into
+`astro.config.mjs` for the static equations in content bodies; `katex` is a
+direct dependency for the live client-side re-renders.
 
 ## Suggestions & voting
 

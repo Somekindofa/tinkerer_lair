@@ -1,11 +1,12 @@
 // Self-contained Canvas simulation. No framework, no external deps —
 // mount() is called once by the host page with the elements it needs.
+import katex from 'katex';
 
 interface VenturiRefs {
   canvas: HTMLCanvasElement;
   slider: HTMLInputElement;
-  velocityOut: HTMLElement;
-  pressureOut: HTMLElement;
+  continuityOut: HTMLElement;
+  bernoulliOut: HTMLElement;
 }
 
 const LOGICAL_WIDTH = 800;
@@ -43,7 +44,7 @@ function makeParticles(): Particle[] {
   return particles;
 }
 
-export function mount({ canvas, slider, velocityOut, pressureOut }: VenturiRefs) {
+export function mount({ canvas, slider, continuityOut, bernoulliOut }: VenturiRefs) {
   const ctx2d = canvas.getContext('2d');
   if (!ctx2d) return;
   const ctx = ctx2d;
@@ -72,13 +73,26 @@ export function mount({ canvas, slider, velocityOut, pressureOut }: VenturiRefs)
     return BASE_SPEED * (inletHW / localHW); // continuity: A1 v1 = A2 v2
   }
 
+  function renderEquation(target: HTMLElement, tex: string) {
+    katex.render(tex, target, { throwOnError: false, displayMode: true });
+  }
+
   function updateReadout() {
     const throatX = LOGICAL_WIDTH / 2;
     const vInlet = velocityAt(0);
     const vThroat = velocityAt(throatX);
+    const ratio = vThroat / vInlet;
     const dPressure = 0.5 * FLUID_DENSITY * (vInlet * vInlet - vThroat * vThroat);
-    velocityOut.textContent = `${(vThroat / vInlet).toFixed(2)}× inlet speed`;
-    pressureOut.textContent = `${(BASELINE_PRESSURE_KPA + dPressure / 1000).toFixed(2)} kPa at throat`;
+    const pThroat = BASELINE_PRESSURE_KPA + dPressure / 1000;
+
+    renderEquation(
+      continuityOut,
+      String.raw`\dfrac{v_2}{v_1} = \dfrac{A_1}{A_2} = ${ratio.toFixed(2)}`
+    );
+    renderEquation(
+      bernoulliOut,
+      String.raw`P_2 = P_1 - \tfrac{1}{2}\rho\left(v_2^2 - v_1^2\right) = ${pThroat.toFixed(2)}\ \text{kPa}`
+    );
   }
 
   function drawPipe() {
