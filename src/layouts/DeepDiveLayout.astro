@@ -1,0 +1,125 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import '../styles/global.css';
+import 'katex/dist/katex.min.css';
+import { slideBlur } from '../lib/transitions';
+
+interface Props {
+  title: string;
+  description?: string;
+  backHref: string;
+  backLabel: string;
+}
+
+const { title, description = 'Open Loop — going deeper.', backHref, backLabel } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" data-mode="pro">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · Open Loop</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.svg`} type="image/svg+xml" />
+    <ClientRouter />
+  </head>
+  <body class="blueprint-grid">
+    <div class="transition-root" transition:name="page-root" transition:animate={slideBlur}>
+      <header class="pro-header">
+        <div class="container pro-header__inner">
+          <a class="back-link ui" href={backHref}>
+            <span aria-hidden="true">&lsaquo;</span> {backLabel}
+          </a>
+          <span class="pro-badge ui">Going further</span>
+        </div>
+      </header>
+      <main class="prose pro-article">
+        <slot />
+      </main>
+      <footer class="pro-footer ui">
+        <div class="container">
+          <p>You've left the quick-glance version. <a href={backHref}>Back to the widget →</a></p>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>
+
+<style>
+  body {
+    position: relative;
+  }
+  /* Vignette darkening toward the edges -- a "lit from above, everything
+     outside the beam falls into shadow" read, reinforcing the need-to-know,
+     confidential-briefing feel of the blueprint register. */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
+    z-index: 1;
+  }
+  .transition-root {
+    position: relative;
+    z-index: 2;
+  }
+  .pro-header {
+    border-bottom: 1px solid var(--hairline);
+  }
+  .pro-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+  }
+  .back-link {
+    color: var(--ink-secondary);
+    text-decoration: none;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .back-link:hover {
+    color: var(--accent);
+  }
+  .pro-badge {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.25rem 0.7rem;
+  }
+  .pro-article {
+    padding: 3rem 1.5rem 4rem;
+  }
+  .pro-article :global(h1) {
+    font-size: 1.9rem;
+    margin: 0 0 1rem;
+  }
+  .pro-article :global(h2) {
+    font-size: 1.2rem;
+    margin: 2.25rem 0 0.75rem;
+    color: var(--accent);
+  }
+  .pro-article :global(p) {
+    color: var(--ink-secondary);
+  }
+  .pro-article :global(strong) {
+    color: var(--ink);
+  }
+  .pro-footer {
+    border-top: 1px solid var(--hairline);
+    margin-top: 2rem;
+    padding: 2rem 0;
+    color: var(--ink-muted);
+    font-size: 0.85rem;
+  }
+  .pro-footer a {
+    color: var(--accent);
+  }
+</style>

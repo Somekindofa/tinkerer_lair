@@ -1,10 +1,12 @@
 ---
 import { getEntry, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import DeepDiveTab from '../../components/DeepDiveTab.astro';
 
 const entry = await getEntry('widgets', 'venturi-effect');
 if (!entry) throw new Error('Missing venturi-effect content entry');
 const { Content } = await render(entry);
+const deepDive = await getEntry('deepDives', 'venturi-effect');
 
 const dateFmt: Intl.DateTimeFormatOptions = { month: 'long', day: 'numeric', year: 'numeric' };
 const published = entry.data.date.toLocaleDateString('en-US', dateFmt);
@@ -45,19 +47,34 @@ const updated = entry.data.updated?.toLocaleDateString('en-US', dateFmt);
       <div id="bernoulli-eq" class="live-eq"></div>
     </div>
   </section>
+
+  {deepDive && <DeepDiveTab href={`${import.meta.env.BASE_URL}widgets/venturi-effect/going-further/`} />}
 </BaseLayout>
 
 <script>
   import { mount } from '../../islands/venturi-effect';
 
-  const canvas = document.getElementById('venturi-canvas') as HTMLCanvasElement;
-  const v1Slider = document.getElementById('v1') as HTMLInputElement;
-  const a1Slider = document.getElementById('a1') as HTMLInputElement;
-  const a2Slider = document.getElementById('a2') as HTMLInputElement;
-  const continuityOut = document.getElementById('continuity-eq') as HTMLElement;
-  const bernoulliOut = document.getElementById('bernoulli-eq') as HTMLElement;
+  // With the ClientRouter, this module only executes once -- re-mount on
+  // every astro:page-load (fires on first load too), tearing down the prior
+  // animation loop first so returning to this page via back/forward doesn't
+  // stack up rAF loops and resize listeners against a detached canvas.
+  let destroy: (() => void) | undefined;
 
-  mount({ canvas, v1Slider, a1Slider, a2Slider, continuityOut, bernoulliOut });
+  function setup() {
+    destroy?.();
+
+    const canvas = document.getElementById('venturi-canvas') as HTMLCanvasElement | null;
+    if (!canvas) return;
+    const v1Slider = document.getElementById('v1') as HTMLInputElement;
+    const a1Slider = document.getElementById('a1') as HTMLInputElement;
+    const a2Slider = document.getElementById('a2') as HTMLInputElement;
+    const continuityOut = document.getElementById('continuity-eq') as HTMLElement;
+    const bernoulliOut = document.getElementById('bernoulli-eq') as HTMLElement;
+
+    destroy = mount({ canvas, v1Slider, a1Slider, a2Slider, continuityOut, bernoulliOut });
+  }
+
+  document.addEventListener('astro:page-load', setup);
 </script>
 
 <style>

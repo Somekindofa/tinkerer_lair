@@ -35,7 +35,10 @@ animation. Use `venturi-effect` as the reference implementation.
    headline equation, render it live with `katex.render(tex, el, {
    throwOnError: false, displayMode: true })`, substituting the current
    numbers into the LaTeX string on every interaction — the equation *is*
-   the readout, not a separate stats line next to it.
+   the readout, not a separate stats line next to it. If the canvas has any
+   labels/dimensions, draw them directly on the diagram (not as a separate
+   text block below it) so values stay attached to the thing they describe
+   as the user drags controls.
 3. Add `src/pages/widgets/<slug>.astro` modeled on `venturi-effect.astro`:
    content renders first (intro → applications → equations), the
    interactive stage comes after, with containers for the live equations
@@ -44,6 +47,55 @@ animation. Use `venturi-effect` as the reference implementation.
 Math rendering (`remark-math` + `rehype-katex`) is already wired into
 `astro.config.mjs` for the static equations in content bodies; `katex` is a
 direct dependency for the live client-side re-renders.
+
+### The ClientRouter tax
+
+`<ClientRouter />` (Astro's View Transitions) is enabled site-wide, so
+internal navigation is SPA-style, not a hard reload. That means any
+`<script>` in a widget page or component only *executes once* — a fresh
+`mount()` call is required on every navigation, including the very first
+one. Every widget's script must follow this shape:
+
+```ts
+document.addEventListener('astro:page-load', () => {
+  // re-query elements and re-mount here, every time
+});
+```
+
+If the island runs a `requestAnimationFrame` loop or adds a `window`
+listener (like `venturi-effect.ts`'s resize handler), `mount()` must return
+a `destroy()` that cancels/removes them, and the page script must call the
+previous `destroy()` before mounting again. Skipping this doesn't error —
+it silently stacks duplicate loops/listeners against detached DOM on every
+back-and-forth visit. `venturi-effect.ts` + `venturi-effect.astro` are the
+reference for the correct pattern.
+
+## Deep-dives ("go deeper")
+
+Some widgets have a genuinely advanced tangent worth its own page rather
+than cluttering the main explainer — Venturi's is choked flow. This is for
+the rare, remarkable case, not routine detail: most widgets won't have one.
+
+1. Add `src/content/deepDives/<slug>.md` (same slug as the parent widget)
+   with `title` + `description` frontmatter and the deep-dive prose (KaTeX
+   works the same as in widget content).
+2. In the widget's page, fetch it and conditionally render the tab:
+   ```astro
+   const deepDive = await getEntry('deepDives', '<slug>');
+   ...
+   {deepDive && <DeepDiveTab href={`${import.meta.env.BASE_URL}widgets/<slug>/going-further/`} />}
+   ```
+   No deep-dive file, no tab — nothing else to wire up.
+3. That's it — `src/pages/widgets/[slug]/going-further.astro` is a single
+   dynamic route that generates the page for every `deepDives` entry
+   automatically, rendered through `DeepDiveLayout`.
+
+The deep-dive page always uses the fixed "blueprint" palette
+(`[data-mode="pro"]` in `global.css`) regardless of the site's light/dark
+toggle, with a vignette and drafting-grid background — a deliberately
+different register from the rest of the site, signaling "you've left the
+quick-glance version." Navigating to and from it uses a custom slide+blur
+View Transition (`src/lib/transitions.ts`).
 
 ## Suggestions & voting
 

@@ -76,9 +76,9 @@ function makeParticles(): Particle[] {
   return particles;
 }
 
-export function mount({ canvas, v1Slider, a1Slider, a2Slider, continuityOut, bernoulliOut }: VenturiRefs) {
+export function mount({ canvas, v1Slider, a1Slider, a2Slider, continuityOut, bernoulliOut }: VenturiRefs): () => void {
   const ctx2dRaw = canvas.getContext('2d');
-  if (!ctx2dRaw) return;
+  if (!ctx2dRaw) return () => {};
   const ctx = ctx2dRaw;
 
   // Size the backing store to the canvas's *actual rendered* CSS size (not a
@@ -227,7 +227,11 @@ export function mount({ canvas, v1Slider, a1Slider, a2Slider, continuityOut, ber
     ctx.globalAlpha = 1;
   }
 
+  let stopped = false;
+  let rafHandle = 0;
+
   function step(now: number) {
+    if (stopped) return;
     const dt = Math.min(0.05, (now - lastTime) / 1000);
     lastTime = now;
     const params = readParams();
@@ -244,7 +248,7 @@ export function mount({ canvas, v1Slider, a1Slider, a2Slider, continuityOut, ber
     drawParticles(params);
     drawStationLabels(params);
 
-    requestAnimationFrame(step);
+    rafHandle = requestAnimationFrame(step);
   }
 
   function onParamsChange() {
@@ -256,5 +260,14 @@ export function mount({ canvas, v1Slider, a1Slider, a2Slider, continuityOut, ber
   a2Slider.addEventListener('input', onParamsChange);
 
   onParamsChange();
-  requestAnimationFrame(step);
+  rafHandle = requestAnimationFrame(step);
+
+  // With the ClientRouter, navigating away doesn't reload the page -- the
+  // caller must stop this loop and the resize listener before mounting
+  // again on return, or they'd stack up against a detached canvas forever.
+  return function destroy() {
+    stopped = true;
+    cancelAnimationFrame(rafHandle);
+    window.removeEventListener('resize', fitCanvasToDisplay);
+  };
 }

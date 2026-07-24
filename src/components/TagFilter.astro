@@ -43,20 +43,27 @@ const { tags } = Astro.props;
 </style>
 
 <script>
-  const buttons = document.querySelectorAll<HTMLButtonElement>('.tag-filter__btn');
-  const cards = document.querySelectorAll<HTMLElement>('[data-tags]');
+  // Re-bind on every astro:page-load (fires on first load too) -- with the
+  // ClientRouter active, module scripts only execute once and would
+  // otherwise leave a freshly-swapped-in filter with no listeners.
+  function setup() {
+    const buttons = document.querySelectorAll<HTMLButtonElement>('.tag-filter__btn');
+    const cards = document.querySelectorAll<HTMLElement>('[data-tags]');
 
-  buttons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      buttons.forEach((b) => b.classList.remove('is-active'));
-      btn.classList.add('is-active');
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        buttons.forEach((b) => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
 
-      const selected = btn.dataset.tag;
-      cards.forEach((card) => {
-        const tags = card.dataset.tags?.split(',') ?? [];
-        const show = selected === 'all' || tags.includes(selected ?? '');
-        card.style.display = show ? '' : 'none';
+        const selected = btn.dataset.tag;
+        cards.forEach((card) => {
+          const tags = card.dataset.tags?.split(',') ?? [];
+          const show = selected === 'all' || tags.includes(selected ?? '');
+          card.style.display = show ? '' : 'none';
+        });
       });
     });
-  });
+  }
+
+  document.addEventListener('astro:page-load', setup);
 </script>

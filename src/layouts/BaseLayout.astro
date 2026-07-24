@@ -1,6 +1,8 @@
 ---
+import { ClientRouter } from 'astro:transitions';
 import '../styles/global.css';
 import 'katex/dist/katex.min.css';
+import { slideBlur } from '../lib/transitions';
 
 interface Props {
   title: string;
@@ -26,55 +28,67 @@ const { title, description = 'Open Loop — interactive science & engineering ti
         }
       })();
     </script>
+    <ClientRouter />
   </head>
   <body>
-    <header class="site-header">
-      <div class="container site-header__inner">
-        <a class="wordmark" href={import.meta.env.BASE_URL}>Open Loop</a>
-        <nav class="ui">
-          <a href={import.meta.env.BASE_URL}>Widgets</a>
-          <a href={`${import.meta.env.BASE_URL}suggest/`}>Suggest &amp; vote</a>
-          <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle color theme">
-            <span aria-hidden="true">◐</span>
-          </button>
-        </nav>
-      </div>
-    </header>
-    <main>
-      <slot />
-    </main>
-    <footer class="site-footer ui">
-      <div class="container">
-        <p>Open Loop — a wandering mind, no feedback correction. Built in the open.</p>
-      </div>
-    </footer>
+    <div class="transition-root" transition:name="page-root" transition:animate={slideBlur}>
+      <header class="site-header">
+        <div class="container site-header__inner">
+          <a class="wordmark" href={import.meta.env.BASE_URL}>Open Loop</a>
+          <nav class="ui">
+            <a href={import.meta.env.BASE_URL}>Widgets</a>
+            <a href={`${import.meta.env.BASE_URL}suggest/`}>Suggest &amp; vote</a>
+            <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle color theme">
+              <span aria-hidden="true">◐</span>
+            </button>
+          </nav>
+        </div>
+      </header>
+      <main>
+        <slot />
+      </main>
+      <footer class="site-footer ui">
+        <div class="container">
+          <p>Open Loop — a wandering mind, no feedback correction. Built in the open.</p>
+        </div>
+      </footer>
+    </div>
   </body>
 </html>
 
 <script>
-  const btn = document.getElementById('theme-toggle') as HTMLButtonElement;
-  const icon = btn.querySelector('span') as HTMLElement;
+  // With the ClientRouter, this module only executes once -- navigations
+  // swap in a fresh DOM without re-running already-loaded scripts. Bind on
+  // astro:page-load (fires on first load too) so the listener always
+  // attaches to whichever #theme-toggle is currently in the document.
+  function setup() {
+    const btn = document.getElementById('theme-toggle') as HTMLButtonElement | null;
+    if (!btn) return;
+    const icon = btn.querySelector('span') as HTMLElement;
 
-  function effectiveTheme(): 'light' | 'dark' {
-    const stored = document.documentElement.dataset.theme;
-    if (stored === 'light' || stored === 'dark') return stored;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  }
+    function effectiveTheme(): 'light' | 'dark' {
+      const stored = document.documentElement.dataset.theme;
+      if (stored === 'light' || stored === 'dark') return stored;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
 
-  function reflect() {
-    const theme = effectiveTheme();
-    icon.textContent = theme === 'dark' ? '☀' : '☾';
-    btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
-  }
+    function reflect() {
+      const theme = effectiveTheme();
+      icon.textContent = theme === 'dark' ? '☀' : '☾';
+      btn!.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+    }
 
-  btn.addEventListener('click', () => {
-    const next: 'light' | 'dark' = effectiveTheme() === 'dark' ? 'light' : 'dark';
-    document.documentElement.dataset.theme = next;
-    localStorage.setItem('theme', next);
+    btn.addEventListener('click', () => {
+      const next: 'light' | 'dark' = effectiveTheme() === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next;
+      localStorage.setItem('theme', next);
+      reflect();
+    });
+
     reflect();
-  });
+  }
 
-  reflect();
+  document.addEventListener('astro:page-load', setup);
 </script>
 
 <style>

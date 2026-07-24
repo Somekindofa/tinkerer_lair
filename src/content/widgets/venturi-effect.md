@@ -57,15 +57,25 @@ velocity ratio set by the geometry.
 $P_2$ can land on either side of $P_1$ depending on which way the geometry
 changes: narrowing ($A_2 < A_1$) speeds the flow up and drops the pressure
 below $P_1$, while widening ($A_2 > A_1$) slows it back down and recovers
-pressure above $P_1$ — both are physically normal. Push the constriction far
-enough, though, and this idealized equation will happily predict a
-*negative* absolute pressure, which isn't physically possible for a liquid:
-real fluids can't sustain pressure much below their vapor pressure without
-**cavitating** — vapor bubbles form locally, which breaks the
-incompressible-flow assumption the whole derivation rests on. A negative
-$P_2$ here isn't a real state the fluid reaches; it's the model telling you
-where cavitation would actually kick in — a real failure mode engineers
-have to design around in pumps, propellers, and Venturi meters alike.
+pressure above $P_1$ — both are physically normal.
+
+## Cavitation
+
+Push the constriction far enough, though, and this idealized equation will
+happily predict a *negative* absolute pressure — which isn't physically
+possible for a liquid. Real fluids can't sustain pressure much below their
+vapor pressure without **cavitating**: vapor bubbles form locally in the
+low-pressure throat, which breaks the incompressible-flow assumption the
+whole derivation rests on.
+
+A negative $P_2$ here isn't a real state the fluid reaches; it's the model
+telling you where cavitation would actually kick in. Those bubbles don't
+stay vapor for long — they collapse violently the instant they drift back
+into higher-pressure flow downstream, and that collapse is what does the
+damage. It's a genuine failure mode engineers have to design around: pump
+impellers, ship propellers, and even valves and Venturi meters can pit and
+erode from cavitation over time, sometimes badly enough to destroy the part
+in a matter of weeks.
 
 Adjust the inlet speed and the two areas below to see both equations play
 out with live numbers directly on the diagram.

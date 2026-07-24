@@ -53,6 +53,37 @@
   --data-red: #e66767;
 }
 
+/* Blueprint — the fixed "pro / engineer-y" register for deep-dive pages.
+   Always this one look, independent of the light/dark toggle: real
+   blueprints are drafted on navy paper regardless of the room's lighting,
+   and a fixed palette reads more strongly as "a different kind of page"
+   than one that adapts. */
+:root[data-mode='pro'] {
+  color-scheme: dark;
+  --page-bg: #0a2036;
+  --surface: #0d2740;
+  --ink: #eaf4ff;
+  --ink-secondary: #9fc3e0;
+  --ink-muted: #6d90ac;
+  --hairline: rgba(148, 199, 255, 0.25);
+  --border: rgba(148, 199, 255, 0.35);
+  --accent: #5ee6d0;
+  --accent-ink: #06251f;
+  --data-red: #ff9a6b;
+  --font-serif: ui-monospace, 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  --font-sans: ui-monospace, 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+}
+
+/* Faint drafting-grid texture, opt-in via class since it's specific to the
+   blueprint register, not part of the base palette. */
+.blueprint-grid {
+  background-image:
+    linear-gradient(var(--hairline) 1px, transparent 1px),
+    linear-gradient(90deg, var(--hairline) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-position: -1px -1px;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -120,4 +151,24 @@ pre {
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: 2px;
+}
+
+/* View Transitions: outgoing page slides left and blurs out, incoming page
+   slides in from the right and blurs in (mirrored for backwards nav). Used
+   by the "go deeper" tab into a widget's blueprint-themed deep-dive. */
+@keyframes slide-blur-out-left {
+  from { transform: translateX(0); filter: blur(0); opacity: 1; }
+  to { transform: translateX(-6%); filter: blur(10px); opacity: 0; }
+}
+@keyframes slide-blur-in-right {
+  from { transform: translateX(6%); filter: blur(10px); opacity: 0; }
+  to { transform: translateX(0); filter: blur(0); opacity: 1; }
+}
+@keyframes slide-blur-out-right {
+  from { transform: translateX(0); filter: blur(0); opacity: 1; }
+  to { transform: translateX(6%); filter: blur(10px); opacity: 0; }
+}
+@keyframes slide-blur-in-left {
+  from { transform: translateX(-6%); filter: blur(10px); opacity: 0; }
+  to { transform: translateX(0); filter: blur(0); opacity: 1; }
 }
