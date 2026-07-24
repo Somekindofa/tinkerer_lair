@@ -1,0 +1,152 @@
+---
+import { getEntry, render } from 'astro:content';
+import DeepDiveLayout from '../../../layouts/DeepDiveLayout.astro';
+
+const framing = await getEntry('deepDives', 'kalman-filter');
+if (!framing) throw new Error('Missing kalman-filter deep-dive framing entry');
+const ekf = await getEntry('deepDives', 'kalman-filter-ekf');
+const ukf = await getEntry('deepDives', 'kalman-filter-ukf');
+if (!ekf || !ukf) throw new Error('Missing kalman-filter EKF/UKF tab content entries');
+
+const widget = await getEntry('widgets', 'kalman-filter');
+const { Content: Framing } = await render(framing);
+const { Content: EkfContent } = await render(ekf);
+const { Content: UkfContent } = await render(ukf);
+
+const backHref = `${import.meta.env.BASE_URL}widgets/kalman-filter/`;
+const backLabel = widget ? widget.data.title : 'the widget';
+---
+
+<DeepDiveLayout title={framing.data.title} description={framing.data.description} backHref={backHref} backLabel={backLabel}>
+  <h1>{framing.data.title}</h1>
+  <Framing />
+
+  <section class="widget-stage">
+    <canvas id="ekf-ukf-canvas" class="widget-canvas" aria-label="Extended and Unscented Kalman filters tracking the same nonlinear measurement"></canvas>
+
+    <div class="controls ui">
+      <div class="control-card">
+        <div class="control-card__head">
+          <label for="r" class="control-card__label">Measurement noise (R)</label>
+          <output id="r-value" for="r" class="control-card__value"><span class="num">0.30</span></output>
+        </div>
+        <input id="r" class="control-slider" type="range" min="0.05" max="1.5" step="0.05" value="0.3" />
+      </div>
+    </div>
+
+    <p class="ui live-label">Same belief, two predictions of the next reading:</p>
+    <div class="predicted-compare ui">
+      <div class="predicted-compare__item">
+        <span class="predicted-compare__label">Linearize it (EKF-style)</span>
+        <span id="linear-zhat" class="predicted-compare__value">—</span>
+      </div>
+      <div class="predicted-compare__item">
+        <span class="predicted-compare__label">Sample it (UKF-style)</span>
+        <span id="sigma-zhat" class="predicted-compare__value">—</span>
+      </div>
+      <div class="predicted-compare__item predicted-compare__item--gap">
+        <span class="predicted-compare__label">Gap — always &ge; 0</span>
+        <span id="zhat-gap" class="predicted-compare__value">—</span>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Kalman filter variations">
+      <button role="tab" id="tab-ekf" aria-controls="panel-ekf" aria-selected="true" class="tab-button">Extended (EKF)</button>
+      <button role="tab" id="tab-ukf" aria-controls="panel-ukf" aria-selected="false" tabindex="-1" class="tab-button">Unscented (UKF)</button>
+    </div>
+
+    <div id="panel-ekf" role="tabpanel" aria-labelledby="tab-ekf" class="tab-panel prose">
+      <EkfContent />
+      <p class="ui live-label">Live:</p>
+      <div class="live-equations">
+        <div id="ekf-eq" class="live-eq"></div>
+      </div>
+    </div>
+
+    <div id="panel-ukf" role="tabpanel" aria-labelledby="tab-ukf" class="tab-panel prose" hidden>
+      <UkfContent />
+      <p class="ui live-label">Live:</p>
+      <div class="live-equations">
+        <div id="ukf-eq" class="live-eq"></div>
+      </div>
+    </div>
+  </section>
+</DeepDiveLayout>
+
+<script>
+  import { mount } from '../../../islands/kalman-ekf-ukf';
+  import { initTabs } from '../../../lib/tabs';
+
+  let destroy: (() => void) | undefined;
+
+  function setup() {
+    destroy?.();
+
+    const canvas = document.getElementById('ekf-ukf-canvas') as HTMLCanvasElement | null;
+    if (!canvas) return;
+    const rSlider = document.getElementById('r') as HTMLInputElement;
+    const rValueOut = document.getElementById('r-value') as HTMLElement;
+    const ekfEqOut = document.getElementById('ekf-eq') as HTMLElement;
+    const ukfEqOut = document.getElementById('ukf-eq') as HTMLElement;
+    const linearZhatOut = document.getElementById('linear-zhat') as HTMLElement;
+    const sigmaZhatOut = document.getElementById('sigma-zhat') as HTMLElement;
+    const gapOut = document.getElementById('zhat-gap') as HTMLElement;
+
+    const chart = mount({ canvas, rSlider, rValueOut, ekfEqOut, ukfEqOut, linearZhatOut, sigmaZhatOut, gapOut });
+    destroy = chart.destroy;
+
+    const tabsRoot = document.querySelector('.tabs') as HTMLElement | null;
+    if (tabsRoot) {
+      initTabs(tabsRoot, (index) => chart.setActiveFilter(index === 0 ? 'ekf' : 'ukf'));
+    }
+  }
+
+  document.addEventListener('astro:page-load', setup);
+</script>
+
+<style>
+  .widget-stage {
+    padding-top: 2.5rem;
+  }
+  .controls {
+    grid-template-columns: 1fr;
+    max-width: 24rem;
+  }
+  .predicted-compare {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .predicted-compare__item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    padding: 0.85rem 1rem;
+  }
+  .predicted-compare__label {
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+    color: var(--ink-secondary);
+  }
+  .predicted-compare__value {
+    font-family: var(--font-sans);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .predicted-compare__item--gap {
+    border-color: var(--accent);
+  }
+  .predicted-compare__item--gap .predicted-compare__value {
+    color: var(--data-red);
+  }
+  .tab-panel :global(h1) {
+    display: none;
+  }
+</style>

@@ -28,6 +28,9 @@ for every piece of this site. Read the file, then follow its shape.
 | **What a "go deeper" deep-dive page looks like**, structurally | `src/pages/widgets/venturi-effect/going-further.astro` |
 | A deep-dive's content markdown | `src/content/deepDives/venturi-effect.md` |
 | A deep-dive with its own bespoke interactive component (a real physics solver, not decoration) | `src/islands/choked-flow.ts` |
+| **A deep-dive that's several declinations of one algorithm, presented as tabs** | `src/pages/widgets/kalman-filter/going-further.astro` (framing entry + EKF/UKF entries in separate `role="tabpanel"`s) |
+| The reusable ARIA tabs controller (click + arrow-key, single `onActivate` callback) | `src/lib/tabs.ts` |
+| A second widget/homepage-featured example (Q/R sliders, live gain equation) | `src/pages/widgets/kalman-filter.astro`, `src/islands/kalman-filter.ts` |
 | The Blueprint theme layout (vignette, drafting grid, fixed dark palette) | `src/layouts/DeepDiveLayout.astro` |
 | The main site layout (theme toggle, ClientRouter, transition root) | `src/layouts/BaseLayout.astro` |
 | The persistent "Go deeper" tab component | `src/components/DeepDiveTab.astro` |
@@ -153,6 +156,27 @@ failure modes are documented here so a future change doesn't undo them.
    `--hairline` (which is shared with real UI borders). Reusing `--hairline`
    for the grid made it compete with body text of a similar hue instead of
    receding as background texture.
+7. **Comparing two independently-evolving processes to demonstrate a math
+   property.** The EKF/UKF deep-dive (`kalman-ekf-ukf.ts`) needed to show
+   that the UKF's predicted measurement is always ≥ the EKF's (Jensen's
+   inequality on a convex `h`). The first two attempts — a time-averaged
+   RMSE, then a time-averaged signed bias — both ran the two filters as
+   fully independent recursions and compared *their own* evolving state.
+   That's not a valid test of the inequality: independent recursions
+   accumulate different gain histories and their means drift apart for
+   reasons that have nothing to do with curvature, and in testing that
+   drift was large enough to flip the sign on ~1/3 of samples, some by 10x
+   the size of the real effect. Jensen's inequality is a statement about
+   *one* distribution — to demonstrate it live, both sides (the linearized
+   prediction and the sigma-point prediction) must be evaluated from the
+   *same* shared belief (mean + variance) at each tick, not read off two
+   separately-diverged trajectories. Once fixed this way, the gap is
+   provably non-negative every tick with no accumulation window needed.
+   The lesson generalizes: **when a live demo claims a mathematical
+   guarantee ("always ≥ 0", "provably converges faster"), verify the
+   guarantee actually holds for what's being computed — run it for a
+   few hundred ticks and check, don't trust that the math "should" work
+   out because each half looks correct in isolation.**
 
 ## Git / deployment protocol
 

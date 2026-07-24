@@ -115,6 +115,26 @@ different register from the rest of the site, signaling "you've left the
 quick-glance version." Navigating to and from it uses a custom slide+blur
 View Transition (`src/lib/transitions.ts`).
 
+### Deep-dives with tabs
+
+When a deep-dive is really several declinations of the same idea (EKF vs.
+UKF, both descendants of the Kalman filter), use the shared ARIA tabs
+controller instead of stacking separate sections — `src/lib/tabs.ts`'s
+`initTabs(container, onActivate?)`, with `kalman-filter/going-further.astro`
+as the reference implementation. Each variant gets its own `deepDives` entry
+(e.g. `kalman-filter-ekf.md`, `kalman-filter-ukf.md`) rendered inside its own
+`role="tabpanel"`, plus one framing entry (`kalman-filter.md`) for the shared
+intro above the tabs. `initTabs`'s `onActivate` callback fires on both click
+and keyboard (arrow-key) navigation from the same code path — don't
+reassign `tabs.activate` externally after the fact, since internal keyboard
+handling calls the closure captured at `initTabs()` time, not a later
+reassignment.
+
+If the tabs share one interactive component (one canvas, one shared
+control), give `mount()` a way to be told which variant is active (see
+`kalman-ekf-ukf.ts`'s `setActiveFilter()`) so the shared visualization can
+highlight the relevant trace without re-mounting.
+
 ## Suggestions & voting
 
 No database — suggestions live as GitHub Issues labeled `suggestion`, and

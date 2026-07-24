@@ -1,0 +1,91 @@
+---
+import { getEntry, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import DeepDiveTab from '../../components/DeepDiveTab.astro';
+
+const entry = await getEntry('widgets', 'kalman-filter');
+if (!entry) throw new Error('Missing kalman-filter content entry');
+const { Content } = await render(entry);
+const deepDive = await getEntry('deepDives', 'kalman-filter');
+
+const dateFmt: Intl.DateTimeFormatOptions = { month: 'long', day: 'numeric', year: 'numeric' };
+const published = entry.data.date.toLocaleDateString('en-US', dateFmt);
+const updated = entry.data.updated?.toLocaleDateString('en-US', dateFmt);
+---
+
+<BaseLayout title={entry.data.title} description={entry.data.description}>
+  <article class="prose widget-article">
+    <p class="ui eyebrow">
+      {published}
+      {updated && <span class="updated"> · Last updated {updated}</span>}
+    </p>
+    <h1>{entry.data.title}</h1>
+    <Content />
+  </article>
+
+  <section class="widget-stage container">
+    <canvas id="kalman-canvas" class="widget-canvas" aria-label="Kalman filter tracking a noisy signal"></canvas>
+
+    <div class="controls ui">
+      <div class="control-card">
+        <div class="control-card__head">
+          <label for="q" class="control-card__label">Process noise (Q)</label>
+          <output id="q-value" for="q" class="control-card__value"><span class="num">0.05</span></output>
+        </div>
+        <input id="q" class="control-slider" type="range" min="0.01" max="0.5" step="0.01" value="0.05" />
+      </div>
+      <div class="control-card">
+        <div class="control-card__head">
+          <label for="r" class="control-card__label">Measurement noise (R)</label>
+          <output id="r-value" for="r" class="control-card__value"><span class="num">0.40</span></output>
+        </div>
+        <input id="r" class="control-slider" type="range" min="0.02" max="2" step="0.02" value="0.4" />
+      </div>
+    </div>
+
+    <p class="ui live-label">Live, from the gain equation above:</p>
+    <div class="live-equations">
+      <div id="gain-eq" class="live-eq"></div>
+    </div>
+  </section>
+
+  {deepDive && <DeepDiveTab href={`${import.meta.env.BASE_URL}widgets/kalman-filter/going-further/`} />}
+</BaseLayout>
+
+<script>
+  import { mount } from '../../islands/kalman-filter';
+
+  let destroy: (() => void) | undefined;
+
+  function setup() {
+    destroy?.();
+
+    const canvas = document.getElementById('kalman-canvas') as HTMLCanvasElement | null;
+    if (!canvas) return;
+    const qSlider = document.getElementById('q') as HTMLInputElement;
+    const rSlider = document.getElementById('r') as HTMLInputElement;
+    const qValueOut = document.getElementById('q-value') as HTMLElement;
+    const rValueOut = document.getElementById('r-value') as HTMLElement;
+    const gainOut = document.getElementById('gain-eq') as HTMLElement;
+
+    destroy = mount({ canvas, qSlider, rSlider, qValueOut, rValueOut, gainOut });
+  }
+
+  document.addEventListener('astro:page-load', setup);
+</script>
+
+<style>
+  .widget-article {
+    padding-top: 2.5rem;
+  }
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.78rem;
+    color: var(--accent);
+    margin: 0 0 0.5rem;
+  }
+  .eyebrow .updated {
+    color: var(--ink-muted);
+  }
+</style>

@@ -4,7 +4,6 @@ description: Squeeze a pipe and the fluid speeds up — but why does the pressur
 date: 2026-07-24
 updated: 2026-07-24
 tags: [fluids, mechanical]
-featured: true
 ---
 
 Push an incompressible fluid through a pipe with a narrowing throat and, by
