@@ -19,10 +19,11 @@ const { Content } = await render(entry);
     <div class="controls ui">
       <label for="constriction">Throat width</label>
       <input id="constriction" type="range" min="0" max="1" step="0.01" value="0.55" />
-      <div class="readouts">
-        <span id="velocity-readout">—</span>
-        <span id="pressure-readout">—</span>
-      </div>
+    </div>
+    <p class="ui live-label">Live, from the equations above:</p>
+    <div class="live-equations">
+      <div id="continuity-eq" class="live-eq"></div>
+      <div id="bernoulli-eq" class="live-eq"></div>
     </div>
   </section>
 </BaseLayout>
@@ -32,10 +33,10 @@ const { Content } = await render(entry);
 
   const canvas = document.getElementById('venturi-canvas') as HTMLCanvasElement;
   const slider = document.getElementById('constriction') as HTMLInputElement;
-  const velocityOut = document.getElementById('velocity-readout') as HTMLElement;
-  const pressureOut = document.getElementById('pressure-readout') as HTMLElement;
+  const continuityOut = document.getElementById('continuity-eq') as HTMLElement;
+  const bernoulliOut = document.getElementById('bernoulli-eq') as HTMLElement;
 
-  mount({ canvas, slider, velocityOut, pressureOut });
+  mount({ canvas, slider, continuityOut, bernoulliOut });
 </script>
 
 <style>
@@ -73,10 +74,26 @@ const { Content } = await render(entry);
     min-width: 10rem;
     accent-color: var(--accent);
   }
-  .readouts {
-    display: flex;
-    gap: 1.25rem;
-    font-variant-numeric: tabular-nums;
-    color: var(--ink);
+  .live-label {
+    margin: 1.5rem 0 0.5rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-muted);
+  }
+  .live-equations {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: 1rem;
+  }
+  .live-eq {
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: var(--surface);
+    padding: 0.75rem 1rem;
+    overflow-x: auto;
+  }
+  .live-eq .katex-display {
+    margin: 0;
   }
 </style>
