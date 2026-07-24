@@ -1,0 +1,82 @@
+---
+import { getEntry, render } from 'astro:content';
+import DeepDiveLayout from '../../../layouts/DeepDiveLayout.astro';
+
+const deepDive = await getEntry('deepDives', 'venturi-effect');
+if (!deepDive) throw new Error('Missing venturi-effect deep-dive content entry');
+const widget = await getEntry('widgets', 'venturi-effect');
+const { Content } = await render(deepDive);
+
+const backHref = `${import.meta.env.BASE_URL}widgets/venturi-effect/`;
+const backLabel = widget ? widget.data.title : 'the widget';
+---
+
+<DeepDiveLayout title={deepDive.data.title} description={deepDive.data.description} backHref={backHref} backLabel={backLabel}>
+  <h1>{deepDive.data.title}</h1>
+  <Content />
+
+  <section class="widget-stage">
+    <canvas id="nozzle-canvas" class="widget-canvas" aria-label="Converging-diverging nozzle flow simulation"></canvas>
+
+    <div class="controls ui">
+      <div class="control-card">
+        <div class="control-card__head">
+          <label for="ratio" class="control-card__label">Back pressure ratio (P<sub>back</sub>/P<sub>0</sub>)</label>
+          <output id="ratio-value" for="ratio" class="control-card__value"><span class="num">0.75</span></output>
+        </div>
+        <input id="ratio" class="control-slider" type="range" min="0.1" max="0.95" step="0.01" value="0.75" />
+        <p class="ui regime-line">Flow: <span id="regime" class="regime-badge">not choked</span></p>
+      </div>
+    </div>
+
+    <p class="ui live-label">Live, from the equation above:</p>
+    <div class="live-equations">
+      <div id="choked-eq" class="live-eq"></div>
+    </div>
+  </section>
+</DeepDiveLayout>
+
+<script>
+  import { mount } from '../../../islands/choked-flow';
+
+  let destroy: (() => void) | undefined;
+
+  function setup() {
+    destroy?.();
+
+    const canvas = document.getElementById('nozzle-canvas') as HTMLCanvasElement | null;
+    if (!canvas) return;
+    const ratioSlider = document.getElementById('ratio') as HTMLInputElement;
+    const ratioValueOut = document.getElementById('ratio-value') as HTMLElement;
+    const regimeOut = document.getElementById('regime') as HTMLElement;
+    const equationOut = document.getElementById('choked-eq') as HTMLElement;
+
+    destroy = mount({ canvas, ratioSlider, ratioValueOut, regimeOut, equationOut });
+  }
+
+  document.addEventListener('astro:page-load', setup);
+</script>
+
+<style>
+  .widget-stage {
+    padding-top: 2.5rem;
+  }
+  .controls {
+    grid-template-columns: 1fr;
+    max-width: 24rem;
+  }
+  .regime-line {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--ink-secondary);
+  }
+  .regime-badge {
+    display: inline-block;
+    font-weight: 700;
+    color: var(--ink-secondary);
+    transition: color 0.15s ease;
+  }
+  .regime-badge.is-choked {
+    color: var(--data-red);
+  }
+</style>

@@ -48,6 +48,15 @@ Math rendering (`remark-math` + `rehype-katex`) is already wired into
 `astro.config.mjs` for the static equations in content bodies; `katex` is a
 direct dependency for the live client-side re-renders.
 
+The parameter-slider chrome (`.controls`, `.control-card`, `.control-slider`,
+`.live-equations`, `.widget-canvas`, `.widget-stage`) lives in `global.css`,
+shared across every widget and deep-dive page — don't redefine it locally.
+Each slider needs a live-updating `<output>` next to its label (see
+`venturi-effect.astro`'s `.control-card__value` markup) and should call
+`slider.style.setProperty('--fill', ...)` on every input so the gradient
+track tracks the value; a bare unstyled `<input type="range">` is the thing
+we're specifically avoiding here.
+
 ### The ClientRouter tax
 
 `<ClientRouter />` (Astro's View Transitions) is enabled site-wide, so
@@ -79,16 +88,25 @@ the rare, remarkable case, not routine detail: most widgets won't have one.
 1. Add `src/content/deepDives/<slug>.md` (same slug as the parent widget)
    with `title` + `description` frontmatter and the deep-dive prose (KaTeX
    works the same as in widget content).
-2. In the widget's page, fetch it and conditionally render the tab:
+2. Add `src/pages/widgets/<slug>/going-further.astro` (a bespoke page, same
+   pattern as widget pages — `venturi-effect/going-further.astro` is the
+   reference) that fetches the `deepDives` entry, renders it through
+   `DeepDiveLayout`, and — only if the tangent warrants one, most won't —
+   adds its own interactive component below the content. It's a separate
+   page precisely so a deep-dive can have a real, bespoke island, not a
+   generic template with no room for one.
+3. In the widget's page, fetch the same entry and conditionally render the
+   tab:
    ```astro
    const deepDive = await getEntry('deepDives', '<slug>');
    ...
    {deepDive && <DeepDiveTab href={`${import.meta.env.BASE_URL}widgets/<slug>/going-further/`} />}
    ```
    No deep-dive file, no tab — nothing else to wire up.
-3. That's it — `src/pages/widgets/[slug]/going-further.astro` is a single
-   dynamic route that generates the page for every `deepDives` entry
-   automatically, rendered through `DeepDiveLayout`.
+
+A deep-dive's own island follows the exact same rules as a widget's (see
+"The ClientRouter tax" above) — `choked-flow.ts` is the reference for one
+with its own `mount()`/`destroy()` and live-updating controls.
 
 The deep-dive page always uses the fixed "blueprint" palette
 (`[data-mode="pro"]` in `global.css`) regardless of the site's light/dark

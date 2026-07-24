@@ -47,3 +47,7 @@ It's the same continuity and energy-conservation logic as the Venturi
 effect the whole way through — it just flips which way area and velocity
 trade off once you cross Mach 1, because past that point the gas itself is
 compressing and expanding fast enough to change the rules.
+
+Drag the back pressure ratio below and watch the flow cross that line for
+yourself — cyan is subsonic, amber is supersonic, and the dashed marker at
+the throat lights up the instant the flow chokes.
