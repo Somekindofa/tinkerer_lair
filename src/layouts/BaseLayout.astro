@@ -22,10 +22,23 @@ const { title, description = 'Open Loop — interactive science & engineering ti
     <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.svg`} type="image/svg+xml" />
     <script is:inline>
       (function () {
-        var stored = localStorage.getItem('theme');
-        if (stored === 'light' || stored === 'dark') {
-          document.documentElement.dataset.theme = stored;
+        function applyStoredTheme(doc) {
+          var stored = localStorage.getItem('theme');
+          if (stored === 'light' || stored === 'dark') {
+            doc.documentElement.dataset.theme = stored;
+          }
         }
+        // Runs once synchronously for the very first paint (avoids a
+        // flash of the wrong theme). But the ClientRouter swaps in a
+        // fresh <html> on every navigation, and data-theme is a runtime
+        // attribute that was never part of the served markup -- without
+        // re-applying it to the incoming document before the swap becomes
+        // visible, every navigation silently drops back to whatever
+        // prefers-color-scheme says, undoing an explicit toggle.
+        applyStoredTheme(document);
+        document.addEventListener('astro:before-swap', function (event) {
+          applyStoredTheme(event.newDocument);
+        });
       })();
     </script>
     <ClientRouter />

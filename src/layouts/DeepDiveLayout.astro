@@ -22,6 +22,24 @@ const { title, description = 'Open Loop — going deeper.', backHref, backLabel 
     <title>{title} · Open Loop</title>
     <meta name="description" content={description} />
     <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.svg`} type="image/svg+xml" />
+    <script is:inline>
+      (function () {
+        function applyStoredTheme(doc) {
+          var stored = localStorage.getItem('theme');
+          if (stored === 'light' || stored === 'dark') {
+            doc.documentElement.dataset.theme = stored;
+          }
+        }
+        // This page always renders in the fixed blueprint palette
+        // regardless of data-theme, but the listener still needs to be
+        // registered here in case this is the first page a visitor lands
+        // on -- otherwise navigating back to a normal page would drop the
+        // stored light/dark preference. See BaseLayout for the full story.
+        document.addEventListener('astro:before-swap', function (event) {
+          applyStoredTheme(event.newDocument);
+        });
+      })();
+    </script>
     <ClientRouter />
   </head>
   <body class="blueprint-grid">

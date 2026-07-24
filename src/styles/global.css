@@ -67,6 +67,7 @@
   --ink-muted: #6d90ac;
   --hairline: rgba(148, 199, 255, 0.25);
   --border: rgba(148, 199, 255, 0.35);
+  --grid-line: rgba(148, 199, 255, 0.07);
   --accent: #5ee6d0;
   --accent-ink: #06251f;
   --data-red: #ff9a6b;
@@ -75,11 +76,14 @@
 }
 
 /* Faint drafting-grid texture, opt-in via class since it's specific to the
-   blueprint register, not part of the base palette. */
+   blueprint register, not part of the base palette. Deliberately its own
+   (much fainter) color, not --hairline -- that's shared with real UI
+   borders, and at grid density it was competing with body text of a
+   similar hue instead of receding as background texture. */
 .blueprint-grid {
   background-image:
-    linear-gradient(var(--hairline) 1px, transparent 1px),
-    linear-gradient(90deg, var(--hairline) 1px, transparent 1px);
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 28px 28px;
   background-position: -1px -1px;
 }
