@@ -1,0 +1,62 @@
+---
+interface Props {
+  tags: string[];
+}
+
+const { tags } = Astro.props;
+---
+
+<div class="tag-filter ui" role="group" aria-label="Filter widgets by topic">
+  <button class="tag-filter__btn is-active" data-tag="all" type="button">All</button>
+  {tags.map((tag) => (
+    <button class="tag-filter__btn" data-tag={tag} type="button">{tag}</button>
+  ))}
+</div>
+
+<style>
+  .tag-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1.5rem 0 2rem;
+  }
+  .tag-filter__btn {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    background: transparent;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    padding: 0.35rem 0.85rem;
+    color: var(--ink-secondary);
+    cursor: pointer;
+  }
+  .tag-filter__btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .tag-filter__btn.is-active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+</style>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('.tag-filter__btn');
+  const cards = document.querySelectorAll<HTMLElement>('[data-tags]');
+
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      buttons.forEach((b) => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+
+      const selected = btn.dataset.tag;
+      cards.forEach((card) => {
+        const tags = card.dataset.tags?.split(',') ?? [];
+        const show = selected === 'all' || tags.includes(selected ?? '');
+        card.style.display = show ? '' : 'none';
+      });
+    });
+  });
+</script>

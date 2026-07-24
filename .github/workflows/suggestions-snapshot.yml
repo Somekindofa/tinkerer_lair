@@ -1,0 +1,58 @@
+name: Snapshot suggestions
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Fetch open suggestions and write suggestions.json
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'suggestion',
+              state: 'open',
+              per_page: 100,
+            });
+
+            const suggestions = issues
+              .filter((issue) => !issue.pull_request)
+              .map((issue) => ({
+                number: issue.number,
+                title: issue.title,
+                url: issue.html_url,
+                votes: issue.reactions?.['+1'] ?? 0,
+              }))
+              .sort((a, b) => b.votes - a.votes);
+
+            const fs = require('fs');
+            fs.writeFileSync(
+              'public/suggestions.json',
+              JSON.stringify({ updatedAt: new Date().toISOString(), suggestions }, null, 2) + '\n'
+            );
+
+      - name: Commit snapshot if changed
+        run: |
+          if git diff --quiet -- public/suggestions.json; then
+            echo "No changes to suggestions.json"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/suggestions.json
+          git commit -m "chore: refresh suggestions snapshot"
+          git push

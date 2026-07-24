@@ -1,0 +1,111 @@
+/* Paper & Ink — light is the default; dark is opt-in via prefers-color-scheme
+   or an explicit [data-theme="dark"] stamp from the theme toggle. */
+:root {
+  color-scheme: light;
+
+  --page-bg: #faf7f0;
+  --surface: #fffdf8;
+  --ink: #0b0b0b;
+  --ink-secondary: #52514e;
+  --ink-muted: #898781;
+  --hairline: #e1e0d9;
+  --border: rgba(11, 11, 11, 0.1);
+
+  --accent: #2a78d6;
+  --accent-ink: #ffffff;
+
+  --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --radius: 6px;
+  --content-width: 46rem;
+  --gallery-width: 72rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --page-bg: #16140f;
+    --surface: #1b1815;
+    --ink: #ffffff;
+    --ink-secondary: #c3c2b7;
+    --ink-muted: #898781;
+    --hairline: #2c2c2a;
+    --border: rgba(255, 255, 255, 0.1);
+    --accent: #3987e5;
+    --accent-ink: #0b0b0b;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --page-bg: #16140f;
+  --surface: #1b1815;
+  --ink: #ffffff;
+  --ink-secondary: #c3c2b7;
+  --ink-muted: #898781;
+  --hairline: #2c2c2a;
+  --border: rgba(255, 255, 255, 0.1);
+  --accent: #3987e5;
+  --accent-ink: #0b0b0b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--page-bg);
+  color: var(--ink);
+  font-family: var(--font-serif);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-serif);
+  line-height: 1.25;
+  font-weight: 600;
+}
+
+/* UI chrome (nav, labels, buttons, chart/axis text) stays sans, never serif. */
+nav,
+button,
+.ui,
+.tag,
+.chart-label,
+.meta {
+  font-family: var(--font-sans);
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+code,
+pre {
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+}
+
+.container {
+  max-width: var(--gallery-width);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.prose {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}

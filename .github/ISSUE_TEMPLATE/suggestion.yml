@@ -1,0 +1,25 @@
+name: Suggest a component
+description: Propose the next interactive widget for Open Loop
+title: "[Suggestion] "
+labels: ["suggestion"]
+body:
+  - type: input
+    id: topic
+    attributes:
+      label: What's the topic?
+      placeholder: e.g. Coriolis effect, RLC resonance, PID tuning sandbox
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why is this interesting to tinker with?
+      description: What should the widget let someone drag, slide, or watch change in real time?
+    validations:
+      required: false
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea! Vote for suggestions (including this one) by
+        reacting 👍 on the issue — the leaderboard on the site is a snapshot
+        of open `suggestion`-labeled issues sorted by reaction count.
