@@ -7,6 +7,9 @@ interface VenturiRefs {
   v1Slider: HTMLInputElement;
   a1Slider: HTMLInputElement;
   a2Slider: HTMLInputElement;
+  v1ValueOut: HTMLElement;
+  a1ValueOut: HTMLElement;
+  a2ValueOut: HTMLElement;
   continuityOut: HTMLElement;
   bernoulliOut: HTMLElement;
 }
@@ -76,7 +79,17 @@ function makeParticles(): Particle[] {
   return particles;
 }
 
-export function mount({ canvas, v1Slider, a1Slider, a2Slider, continuityOut, bernoulliOut }: VenturiRefs): () => void {
+export function mount({
+  canvas,
+  v1Slider,
+  a1Slider,
+  a2Slider,
+  v1ValueOut,
+  a1ValueOut,
+  a2ValueOut,
+  continuityOut,
+  bernoulliOut,
+}: VenturiRefs): () => void {
   const ctx2dRaw = canvas.getContext('2d');
   if (!ctx2dRaw) return () => {};
   const ctx = ctx2dRaw;
@@ -251,7 +264,27 @@ export function mount({ canvas, v1Slider, a1Slider, a2Slider, continuityOut, ber
     rafHandle = requestAnimationFrame(step);
   }
 
+  // Drives both the gradient-filled slider track (via a --fill custom
+  // property the CSS reads) and the live number next to it -- so the
+  // control itself shows what it's currently set to, not just the canvas.
+  function updateSliderVisual(slider: HTMLInputElement, valueOut: HTMLElement, tintBySpeed: boolean) {
+    const min = parseFloat(slider.min);
+    const max = parseFloat(slider.max);
+    const val = parseFloat(slider.value);
+    const pct = ((val - min) / (max - min)) * 100;
+    slider.style.setProperty('--fill', `${pct}%`);
+
+    const numEl = valueOut.querySelector('.num');
+    if (numEl) numEl.textContent = val.toFixed(0);
+    if (tintBySpeed) {
+      (valueOut as HTMLElement).style.color = speedColor(pct / 100);
+    }
+  }
+
   function onParamsChange() {
+    updateSliderVisual(v1Slider, v1ValueOut, true);
+    updateSliderVisual(a1Slider, a1ValueOut, false);
+    updateSliderVisual(a2Slider, a2ValueOut, false);
     updateReadout();
   }
 

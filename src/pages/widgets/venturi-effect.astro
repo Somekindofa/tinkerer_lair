@@ -27,17 +27,26 @@ const updated = entry.data.updated?.toLocaleDateString('en-US', dateFmt);
     <canvas id="venturi-canvas" aria-label="Venturi effect flow simulation"></canvas>
 
     <div class="controls ui">
-      <div class="control-row">
-        <label for="v1">Inlet speed (v₁)</label>
-        <input id="v1" type="range" min="30" max="150" step="1" value="90" />
+      <div class="control-card control-card--speed">
+        <div class="control-card__head">
+          <label for="v1" class="control-card__label">Inlet speed</label>
+          <output id="v1-value" for="v1" class="control-card__value"><span class="num">90</span><span class="unit">m/s</span></output>
+        </div>
+        <input id="v1" class="control-slider" type="range" min="30" max="150" step="1" value="90" />
       </div>
-      <div class="control-row">
-        <label for="a1">Inlet area (A₁)</label>
-        <input id="a1" type="range" min="20" max="100" step="1" value="80" />
+      <div class="control-card">
+        <div class="control-card__head">
+          <label for="a1" class="control-card__label">Inlet area (A₁)</label>
+          <output id="a1-value" for="a1" class="control-card__value"><span class="num">80</span><span class="unit">cm²</span></output>
+        </div>
+        <input id="a1" class="control-slider" type="range" min="20" max="100" step="1" value="80" />
       </div>
-      <div class="control-row">
-        <label for="a2">Throat area (A₂)</label>
-        <input id="a2" type="range" min="10" max="100" step="1" value="50" />
+      <div class="control-card">
+        <div class="control-card__head">
+          <label for="a2" class="control-card__label">Throat area (A₂)</label>
+          <output id="a2-value" for="a2" class="control-card__value"><span class="num">50</span><span class="unit">cm²</span></output>
+        </div>
+        <input id="a2" class="control-slider" type="range" min="10" max="100" step="1" value="50" />
       </div>
     </div>
 
@@ -68,10 +77,23 @@ const updated = entry.data.updated?.toLocaleDateString('en-US', dateFmt);
     const v1Slider = document.getElementById('v1') as HTMLInputElement;
     const a1Slider = document.getElementById('a1') as HTMLInputElement;
     const a2Slider = document.getElementById('a2') as HTMLInputElement;
+    const v1ValueOut = document.getElementById('v1-value') as HTMLElement;
+    const a1ValueOut = document.getElementById('a1-value') as HTMLElement;
+    const a2ValueOut = document.getElementById('a2-value') as HTMLElement;
     const continuityOut = document.getElementById('continuity-eq') as HTMLElement;
     const bernoulliOut = document.getElementById('bernoulli-eq') as HTMLElement;
 
-    destroy = mount({ canvas, v1Slider, a1Slider, a2Slider, continuityOut, bernoulliOut });
+    destroy = mount({
+      canvas,
+      v1Slider,
+      a1Slider,
+      a2Slider,
+      v1ValueOut,
+      a1ValueOut,
+      a2ValueOut,
+      continuityOut,
+      bernoulliOut,
+    });
   }
 
   document.addEventListener('astro:page-load', setup);
@@ -102,22 +124,120 @@ const updated = entry.data.updated?.toLocaleDateString('en-US', dateFmt);
     border-radius: var(--radius);
   }
   .controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .control-card {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
-    margin-top: 1.25rem;
-    font-size: 0.85rem;
+    gap: 0.9rem;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    padding: 1rem 1.1rem 1.15rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  }
+  .control-card:hover,
+  .control-card:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 4px 16px rgba(11, 11, 11, 0.08);
+    transform: translateY(-1px);
+  }
+  .control-card__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .control-card__label {
+    font-size: 0.78rem;
     color: var(--ink-secondary);
   }
-  .control-row {
-    display: grid;
-    grid-template-columns: 9rem 1fr;
-    align-items: center;
-    gap: 0.75rem;
+  .control-card__value {
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent);
+    white-space: nowrap;
+    transition: color 0.15s ease;
   }
-  .controls input[type='range'] {
+  .control-card__value .unit {
+    margin-left: 0.25rem;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--ink-muted);
+  }
+
+  /* Custom range slider: a gradient-filled track (the fill percentage is
+     set via the --fill custom property on 'input') and a larger, tactile
+     thumb that grows on interaction -- default unstyled range inputs read
+     as an afterthought, not a control worth touching. */
+  .control-slider {
+    -webkit-appearance: none;
+    appearance: none;
     width: 100%;
-    accent-color: var(--accent);
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to right,
+      var(--accent) 0%,
+      var(--accent) var(--fill, 50%),
+      var(--hairline) var(--fill, 50%),
+      var(--hairline) 100%
+    );
+    outline: none;
+    cursor: pointer;
+    margin: 0.15rem 0 0.35rem;
+  }
+  .control-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    margin-top: -6px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid var(--surface);
+    box-shadow: 0 1px 4px rgba(11, 11, 11, 0.3);
+    cursor: grab;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .control-slider:hover::-webkit-slider-thumb {
+    transform: scale(1.15);
+  }
+  .control-slider:active::-webkit-slider-thumb {
+    cursor: grabbing;
+    transform: scale(1.25);
+    box-shadow: 0 2px 8px rgba(11, 11, 11, 0.4);
+  }
+  .control-slider::-moz-range-track {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--hairline);
+  }
+  .control-slider::-moz-range-progress {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--accent);
+  }
+  .control-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid var(--surface);
+    box-shadow: 0 1px 4px rgba(11, 11, 11, 0.3);
+    cursor: grab;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .control-slider:hover::-moz-range-thumb {
+    transform: scale(1.15);
+  }
+  .control-slider:active::-moz-range-thumb {
+    cursor: grabbing;
+    transform: scale(1.25);
   }
   .live-label {
     margin: 1.5rem 0 0.5rem;
