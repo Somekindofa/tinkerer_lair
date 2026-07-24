@@ -54,6 +54,18 @@ Since $v_2 > v_1$ at the constriction, $P_2 < P_1$ — the throat is always
 at lower pressure than the inlet, and by how much depends only on the
 velocity ratio set by the geometry.
 
+$P_2$ can land on either side of $P_1$ depending on which way the geometry
+changes: narrowing ($A_2 < A_1$) speeds the flow up and drops the pressure
+below $P_1$, while widening ($A_2 > A_1$) slows it back down and recovers
+pressure above $P_1$ — both are physically normal. Push the constriction far
+enough, though, and this idealized equation will happily predict a
+*negative* absolute pressure, which isn't physically possible for a liquid:
+real fluids can't sustain pressure much below their vapor pressure without
+**cavitating** — vapor bubbles form locally, which breaks the
+incompressible-flow assumption the whole derivation rests on. A negative
+$P_2$ here isn't a real state the fluid reaches; it's the model telling you
+where cavitation would actually kick in — a real failure mode engineers
+have to design around in pumps, propellers, and Venturi meters alike.
+
 Adjust the inlet speed and the two areas below to see both equations play
-out with live numbers on the diagram itself — and check the angled view
-underneath for a sense of the tube's actual shape.
+out with live numbers directly on the diagram.

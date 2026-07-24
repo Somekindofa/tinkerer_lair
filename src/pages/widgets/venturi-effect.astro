@@ -44,9 +44,6 @@ const updated = entry.data.updated?.toLocaleDateString('en-US', dateFmt);
       <div id="continuity-eq" class="live-eq"></div>
       <div id="bernoulli-eq" class="live-eq"></div>
     </div>
-
-    <p class="ui angle-label">Seen from an angle</p>
-    <canvas id="venturi-canvas-3d" aria-label="Venturi tube, static angled illustration"></canvas>
   </section>
 </BaseLayout>
 
@@ -54,14 +51,13 @@ const updated = entry.data.updated?.toLocaleDateString('en-US', dateFmt);
   import { mount } from '../../islands/venturi-effect';
 
   const canvas = document.getElementById('venturi-canvas') as HTMLCanvasElement;
-  const canvas3d = document.getElementById('venturi-canvas-3d') as HTMLCanvasElement;
   const v1Slider = document.getElementById('v1') as HTMLInputElement;
   const a1Slider = document.getElementById('a1') as HTMLInputElement;
   const a2Slider = document.getElementById('a2') as HTMLInputElement;
   const continuityOut = document.getElementById('continuity-eq') as HTMLElement;
   const bernoulliOut = document.getElementById('bernoulli-eq') as HTMLElement;
 
-  mount({ canvas, canvas3d, v1Slider, a1Slider, a2Slider, continuityOut, bernoulliOut });
+  mount({ canvas, v1Slider, a1Slider, a2Slider, continuityOut, bernoulliOut });
 </script>
 
 <style>
@@ -81,8 +77,7 @@ const updated = entry.data.updated?.toLocaleDateString('en-US', dateFmt);
   .widget-stage {
     padding: 2rem 1.5rem 4rem;
   }
-  #venturi-canvas,
-  #venturi-canvas-3d {
+  #venturi-canvas {
     display: block;
     width: 100%;
     background: var(--surface);
@@ -128,12 +123,5 @@ const updated = entry.data.updated?.toLocaleDateString('en-US', dateFmt);
   }
   .live-eq .katex-display {
     margin: 0;
-  }
-  .angle-label {
-    margin: 2rem 0 0.5rem;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--ink-muted);
   }
 </style>
