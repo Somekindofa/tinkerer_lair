@@ -1,7 +1,7 @@
 // Self-contained Canvas simulation of a converging-diverging (de Laval)
 // nozzle. Real isentropic compressible-flow relations, not a hand-wave --
 // solved numerically where there's no closed form. No framework, no deps.
-import katex from 'katex';
+import { renderEquation as renderKatex } from '../lib/katex-render';
 
 interface ChokedFlowRefs {
   canvas: HTMLCanvasElement;
@@ -185,7 +185,7 @@ export function mount({ canvas, ratioSlider, ratioValueOut, regimeOut, equationO
   }
 
   function renderEquation(target: HTMLElement, tex: string) {
-    katex.render(tex, target, { throwOnError: false, displayMode: true });
+    renderKatex(tex, target, { throwOnError: false, displayMode: true });
   }
 
   function updateReadout(flow: FlowState, ratio: number) {

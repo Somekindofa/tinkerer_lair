@@ -2,7 +2,7 @@
 // the same live measurement stream from a genuinely nonlinear sensor
 // (z = e^x + noise), so the two can be compared directly rather than
 // taken on faith. No framework, no external deps beyond katex.
-import katex from 'katex';
+import { renderEquation as renderKatex } from '../lib/katex-render';
 
 interface EkfUkfRefs {
   canvas: HTMLCanvasElement;
@@ -136,12 +136,12 @@ export function mount({ canvas, rSlider, rValueOut, ekfEqOut, ukfEqOut, linearZh
   }
 
   function renderEquations() {
-    katex.render(
+    renderKatex(
       String.raw`H_k = e^{\hat{x}_k^-} = ${hJacobian.toFixed(2)} \quad\Longrightarrow\quad K_k = ${kEkf.toFixed(2)}`,
       ekfEqOut,
       { throwOnError: false, displayMode: true }
     );
-    katex.render(
+    renderKatex(
       String.raw`\chi_{1,2} = \hat{x}_k^- \pm ${sigmaSpread.toFixed(2)} \quad\Longrightarrow\quad K_k = ${kUkf.toFixed(2)}`,
       ukfEqOut,
       { throwOnError: false, displayMode: true }

@@ -299,6 +299,13 @@ pre {
   gap: 1rem;
 }
 .live-eq {
+  /* Grid items default to min-width: auto, which refuses to shrink below
+     an unbreakable child's intrinsic width -- for a wide KaTeX equation,
+     that forces this whole grid track (and the page along with it) wider
+     than the viewport on narrow screens instead of actually containing the
+     overflow in the scrollbar below. min-width: 0 lets the item shrink to
+     its grid track so overflow-x can do its job. */
+  min-width: 0;
   border: 1px solid var(--hairline);
   border-radius: var(--radius);
   background: var(--surface);
@@ -307,6 +314,19 @@ pre {
 }
 .live-eq .katex-display {
   margin: 0;
+  /* Both KaTeX's own stylesheet and this file's .katex-display rule (for
+     static prose equations) put overflow-x: auto here, making this a
+     SECOND scroll container nested inside .live-eq's. Since katex.render()
+     destroys and rebuilds this element from scratch on every re-render, any
+     scroll position held on it is lost every tick regardless of the
+     scrollLeft preservation in lib/katex-render.ts, which only preserves
+     the stable outer .live-eq node. Forcing this inner one back to visible
+     makes .live-eq the single, persistent scroll container overflow
+     actually bubbles up to. Both axes must be set: overflow-x: visible
+     alone gets silently computed back to auto by the UA whenever the other
+     axis (overflow-y, inherited as hidden here) isn't also visible -- a
+     real CSS Overflow spec rule, not a bug. */
+  overflow: visible;
 }
 
 /* Reusable tabs (ARIA tabs pattern, wired up by src/lib/tabs.ts). A

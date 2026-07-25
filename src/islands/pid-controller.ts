@@ -1,7 +1,7 @@
 // Self-contained Canvas simulation of a PID controller driving a
 // force-saturated mass-damper plant toward a step-changing setpoint. No
 // framework, no external deps beyond katex.
-import katex from 'katex';
+import { renderEquation as renderKatex } from '../lib/katex-render';
 
 interface PidRefs {
   canvas: HTMLCanvasElement;
@@ -119,7 +119,7 @@ export function mount({
 
   function renderEquation() {
     const sign = (v: number) => (v >= 0 ? '+' : '-');
-    katex.render(
+    renderKatex(
       String.raw`u = K_p e + K_i\!\displaystyle\int\! e\,dt - K_d \dot{x} = ${pTerm.toFixed(2)} ${sign(iTerm)} ${Math.abs(iTerm).toFixed(2)} ${sign(dTerm)} ${Math.abs(dTerm).toFixed(2)} = ${uRaw.toFixed(2)} \;\Longrightarrow\; u_{applied} = ${uApplied.toFixed(2)}`,
       eqOut,
       { throwOnError: false, displayMode: true }

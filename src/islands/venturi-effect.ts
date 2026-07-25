@@ -1,6 +1,6 @@
 // Self-contained Canvas simulation. No framework, no external deps —
 // mount() is called once by the host page with the elements it needs.
-import katex from 'katex';
+import { renderEquation as renderKatex } from '../lib/katex-render';
 
 interface VenturiRefs {
   canvas: HTMLCanvasElement;
@@ -142,7 +142,7 @@ export function mount({
   }
 
   function renderEquation(target: HTMLElement, tex: string) {
-    katex.render(tex, target, { throwOnError: false, displayMode: true });
+    renderKatex(tex, target, { throwOnError: false, displayMode: true });
   }
 
   function updateReadout() {

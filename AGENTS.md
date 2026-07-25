@@ -194,6 +194,38 @@ failure modes are documented here so a future change doesn't undo them.
    combination, a bounded, mentioned-in-a-comment measure (the Kalman
    state clamp, the PID integral clamp) is a reasonable fix — don't
    silently narrow the slider range just to hide the behavior instead.
+9. **`:hover` reveal states have no equivalent on touch.** `DeepDiveTab`
+   sits at `right: 0` but rests translated `0.9rem` further off-screen,
+   sliding fully into view on `:hover`/`:focus-visible` — deliberate on
+   desktop (a "peek, then reveal" affordance), but touch devices have no
+   hover, so the tab was permanently stuck ~22% off-screen there, reading
+   as "doesn't show up" rather than "slightly cut off." Any component whose
+   resting state relies on `:hover` to become fully usable needs its resting
+   state gated behind `@media (hover: hover) and (pointer: fine)`, with a
+   sane touch-friendly default outside it — verify with a real
+   `hasTouch: true, isMobile: true` Playwright context, not just a narrow
+   desktop viewport (desktop Chromium narrowed to phone width still has
+   `:hover`, so it won't reproduce this class of bug).
+10. **`katex.render()` on a live-updating equation destroys its own scroll
+    state on every re-render.** Every widget's `.live-eq` box has
+    `overflow-x: auto` for equations too wide on narrow screens, but
+    `katex.render()` fully replaces the target element's content on every
+    tick, and KaTeX's own CSS *also* puts `overflow-x: auto` on the inner
+    `.katex-display` node it creates each time — a second, nested scroll
+    container that gets destroyed and rebuilt from scratch every render,
+    taking any scroll position with it. On a fast tick interval that makes
+    genuine horizontal scrolling on mobile impossible: any progress
+    scrolling right snaps back within one tick. Fixed two ways together:
+    `src/lib/katex-render.ts`'s `renderEquation()` saves/restores
+    `el.scrollLeft` around every `katex.render()` call (every island now
+    calls this instead of `katex.render` directly), and
+    `.live-eq .katex-display { overflow: visible }` in `global.css`
+    neutralizes the inner nested scroll container so `.live-eq` — the
+    stable node whose scroll position actually gets preserved — is the
+    only element left doing the scrolling. Note both axes must be set:
+    `overflow-x: visible` alone is silently computed back to `auto` by the
+    UA whenever `overflow-y` isn't also `visible` (a real CSS Overflow
+    spec rule, not a bug — cost real debugging time to track down).
 
 ## Git / deployment protocol
 

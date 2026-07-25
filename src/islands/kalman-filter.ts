@@ -1,6 +1,6 @@
 // Self-contained Canvas simulation of a scalar Kalman filter tracking a
 // noisy signal live. No framework, no external deps beyond katex.
-import katex from 'katex';
+import { renderEquation as renderKatex } from '../lib/katex-render';
 
 interface KalmanRefs {
   canvas: HTMLCanvasElement;
@@ -81,7 +81,7 @@ export function mount({ canvas, qSlider, rSlider, qValueOut, rValueOut, gainOut 
   function renderEquation() {
     const { Q, R } = readQR();
     const pPredict = variance + Q;
-    katex.render(
+    renderKatex(
       String.raw`K_k = \dfrac{P_k^-}{P_k^- + R} = \dfrac{${pPredict.toFixed(2)}}{${pPredict.toFixed(2)} + ${R.toFixed(2)}} = ${gain.toFixed(2)}`,
       gainOut,
       { throwOnError: false, displayMode: true }

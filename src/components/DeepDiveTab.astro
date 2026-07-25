@@ -17,7 +17,11 @@ const { href, label = 'Go deeper' } = Astro.props;
     position: fixed;
     right: 0;
     top: 50%;
-    transform: translate(0.9rem, -50%);
+    /* Peeks 0.9rem off-screen at rest and slides fully into view on
+       hover/focus below -- but touch devices have no hover, so that resting
+       state would be permanently, uselessly half-offscreen there. Only
+       apply the peek on devices that can actually reveal it. */
+    transform: translate(0, -50%);
     display: flex;
     align-items: center;
     gap: 0.4rem;
@@ -33,6 +37,11 @@ const { href, label = 'Go deeper' } = Astro.props;
     box-shadow: -2px 2px 10px rgba(11, 11, 11, 0.06), inset 2px 0 0 var(--accent);
     transition: transform 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
     z-index: 20;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .deep-dive-tab {
+      transform: translate(0.9rem, -50%);
+    }
   }
   .deep-dive-tab:hover,
   .deep-dive-tab:focus-visible {
