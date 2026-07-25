@@ -3,7 +3,6 @@ title: The Kalman Filter
 description: A noisy sensor and an imperfect model, fused into an estimate that beats either one alone — watch it happen in real time.
 date: 2026-07-24
 tags: [estimation, controls]
-featured: true
 ---
 
 Every sensor lies a little. Point a noisy instrument at something and you

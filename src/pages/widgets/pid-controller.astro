@@ -1,0 +1,100 @@
+---
+import { getEntry, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import DeepDiveTab from '../../components/DeepDiveTab.astro';
+
+const entry = await getEntry('widgets', 'pid-controller');
+if (!entry) throw new Error('Missing pid-controller content entry');
+const { Content } = await render(entry);
+const deepDive = await getEntry('deepDives', 'pid-controller');
+
+const dateFmt: Intl.DateTimeFormatOptions = { month: 'long', day: 'numeric', year: 'numeric' };
+const published = entry.data.date.toLocaleDateString('en-US', dateFmt);
+const updated = entry.data.updated?.toLocaleDateString('en-US', dateFmt);
+---
+
+<BaseLayout title={entry.data.title} description={entry.data.description}>
+  <article class="prose widget-article">
+    <p class="ui eyebrow">
+      {published}
+      {updated && <span class="updated"> · Last updated {updated}</span>}
+    </p>
+    <h1>{entry.data.title}</h1>
+    <Content />
+  </article>
+
+  <section class="widget-stage container">
+    <canvas id="pid-canvas" class="widget-canvas" aria-label="PID controller driving a mass toward a step-changing target"></canvas>
+
+    <div class="controls ui">
+      <div class="control-card">
+        <div class="control-card__head">
+          <label for="kp" class="control-card__label">Proportional (K_p)</label>
+          <output id="kp-value" for="kp" class="control-card__value"><span class="num">2.00</span></output>
+        </div>
+        <input id="kp" class="control-slider" type="range" min="0.5" max="6" step="0.1" value="2" />
+      </div>
+      <div class="control-card">
+        <div class="control-card__head">
+          <label for="ki" class="control-card__label">Integral (K_i)</label>
+          <output id="ki-value" for="ki" class="control-card__value"><span class="num">0.60</span></output>
+        </div>
+        <input id="ki" class="control-slider" type="range" min="0" max="2" step="0.05" value="0.6" />
+      </div>
+      <div class="control-card">
+        <div class="control-card__head">
+          <label for="kd" class="control-card__label">Derivative (K_d)</label>
+          <output id="kd-value" for="kd" class="control-card__value"><span class="num">0.60</span></output>
+        </div>
+        <input id="kd" class="control-slider" type="range" min="0" max="2" step="0.05" value="0.6" />
+      </div>
+    </div>
+
+    <p class="ui live-label">Live, from the equation above:</p>
+    <div class="live-equations">
+      <div id="pid-eq" class="live-eq"></div>
+    </div>
+  </section>
+
+  {deepDive && <DeepDiveTab href={`${import.meta.env.BASE_URL}widgets/pid-controller/going-further/`} />}
+</BaseLayout>
+
+<script>
+  import { mount } from '../../islands/pid-controller';
+
+  let destroy: (() => void) | undefined;
+
+  function setup() {
+    destroy?.();
+
+    const canvas = document.getElementById('pid-canvas') as HTMLCanvasElement | null;
+    if (!canvas) return;
+    const kpSlider = document.getElementById('kp') as HTMLInputElement;
+    const kiSlider = document.getElementById('ki') as HTMLInputElement;
+    const kdSlider = document.getElementById('kd') as HTMLInputElement;
+    const kpValueOut = document.getElementById('kp-value') as HTMLElement;
+    const kiValueOut = document.getElementById('ki-value') as HTMLElement;
+    const kdValueOut = document.getElementById('kd-value') as HTMLElement;
+    const eqOut = document.getElementById('pid-eq') as HTMLElement;
+
+    destroy = mount({ canvas, kpSlider, kiSlider, kdSlider, kpValueOut, kiValueOut, kdValueOut, eqOut });
+  }
+
+  document.addEventListener('astro:page-load', setup);
+</script>
+
+<style>
+  .widget-article {
+    padding-top: 2.5rem;
+  }
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.78rem;
+    color: var(--accent);
+    margin: 0 0 0.5rem;
+  }
+  .eyebrow .updated {
+    color: var(--ink-muted);
+  }
+</style>

@@ -31,6 +31,7 @@ for every piece of this site. Read the file, then follow its shape.
 | **A deep-dive that's several declinations of one algorithm, presented as tabs** | `src/pages/widgets/kalman-filter/going-further.astro` (framing entry + EKF/UKF entries in separate `role="tabpanel"`s) |
 | The reusable ARIA tabs controller (click + arrow-key, single `onActivate` callback) | `src/lib/tabs.ts` |
 | A second widget/homepage-featured example (Q/R sliders, live gain equation) | `src/pages/widgets/kalman-filter.astro`, `src/islands/kalman-filter.ts` |
+| A widget with 3 sliders driving a physical plant simulation, sub-stepped for numerical stability, with a naive-then-fixed instability worth knowing about (integral windup, derivative kick) | `src/islands/pid-controller.ts` |
 | The Blueprint theme layout (vignette, drafting grid, fixed dark palette) | `src/layouts/DeepDiveLayout.astro` |
 | The main site layout (theme toggle, ClientRouter, transition root) | `src/layouts/BaseLayout.astro` |
 | The persistent "Go deeper" tab component | `src/components/DeepDiveTab.astro` |
@@ -177,6 +178,22 @@ failure modes are documented here so a future change doesn't undo them.
    guarantee actually holds for what's being computed — run it for a
    few hundred ticks and check, don't trust that the math "should" work
    out because each half looks correct in isolation.**
+8. **Sliders feeding a live simulation must be stress-tested across their
+   full range, not just the defaults, before shipping.** The PID widget's
+   default gains track cleanly, but the *point* of exposing Kp/Ki/Kd
+   sliders is to let a visitor find the bad corners (low Kp + high Ki
+   winds up badly) — and a naive integrator there doesn't just overshoot
+   once, it compounds worse on every setpoint cycle and drifts unboundedly
+   over a long-enough visit. Before writing any canvas/drawing code, write
+   a throwaway Node script (`pid_sim*.js` in scratch, not committed) that
+   grid-searches the full slider range over several *simulated minutes*
+   and checks the state stays bounded — this is exactly what caught both
+   the EKF/UKF divergence above and the PID integral runaway, and it's
+   far faster than discovering either by dragging sliders in a browser.
+   Where the physics itself can legitimately run away for some slider
+   combination, a bounded, mentioned-in-a-comment measure (the Kalman
+   state clamp, the PID integral clamp) is a reasonable fix — don't
+   silently narrow the slider range just to hide the behavior instead.
 
 ## Git / deployment protocol
 
