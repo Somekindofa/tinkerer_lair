@@ -17,8 +17,8 @@ interface EkfUkfRefs {
 
 const LOGICAL_WIDTH = 800;
 const LOGICAL_HEIGHT = 280;
-const Y_MIN = -2.5;
-const Y_MAX = 2.5;
+const Y_MIN = -4.5;
+const Y_MAX = 4.5;
 const HISTORY_SECONDS = 12;
 const TICK_MS = 150;
 // Fixed process noise -- the point of this demo is R and the nonlinearity,
@@ -27,9 +27,22 @@ const TICK_MS = 150;
 // meaningfully large is what makes the gap between the two filters show
 // up reliably instead of being swamped by per-run noise variance.
 const Q = 0.2;
+// h(x) = e^x is only ever positive, but the additive Gaussian measurement
+// noise can still push z negative -- most likely when the true state sits
+// near its own -3 floor, where h is tiny and easily overwhelmed by noise.
+// A negative z looks like a strong "go more negative" signal to the linear
+// update, and once a state estimate drifts into that flat, near-zero-slope
+// region, the shrunken gain there can't pull it back out either -- a real
+// EKF/UKF divergence mode for this h, not just a display nicety. Clamping
+// the state after every update (mirroring trueValue's own clamp below)
+// stops that runaway at the source; stress-tested over 10-minute runs at
+// max R this keeps both trajectories within +-4, comfortably inside the
+// plotted Y range.
+const STATE_CLAMP = 4;
 
 function yToPx(y: number): number {
-  const t = (y - Y_MIN) / (Y_MAX - Y_MIN);
+  const clamped = Math.max(Y_MIN, Math.min(Y_MAX, y));
+  const t = (clamped - Y_MIN) / (Y_MAX - Y_MIN);
   return LOGICAL_HEIGHT - t * LOGICAL_HEIGHT;
 }
 
@@ -158,6 +171,7 @@ export function mount({ canvas, rSlider, rValueOut, ekfEqOut, ukfEqOut, linearZh
     const zHatEkf = h(xEkfPred);
     kEkf = (pEkfPred * hJacobian) / (hJacobian * hJacobian * pEkfPred + R);
     xEkf = xEkfPred + kEkf * (z - zHatEkf);
+    xEkf = Math.max(-STATE_CLAMP, Math.min(STATE_CLAMP, xEkf));
     pEkf = (1 - kEkf * hJacobian) * pEkfPred;
 
     // --- UKF: propagate 3 sigma points through the true h(x) = e^x,
@@ -178,6 +192,7 @@ export function mount({ canvas, rSlider, rValueOut, ekfEqOut, ukfEqOut, linearZh
     const pxz = w0 * (chi0 - xUkfPred) * (Z0 - zHatUkf) + w12 * (chi1 - xUkfPred) * (Z1 - zHatUkf) + w12 * (chi2 - xUkfPred) * (Z2 - zHatUkf);
     kUkf = pxz / pzz;
     xUkf = xUkfPred + kUkf * (z - zHatUkf);
+    xUkf = Math.max(-STATE_CLAMP, Math.min(STATE_CLAMP, xUkf));
     pUkf = pUkfPred - kUkf * kUkf * pzz;
 
     // The demo comparison: linearize the SAME belief (xUkfPred, pUkfPred)
@@ -204,7 +219,7 @@ export function mount({ canvas, rSlider, rValueOut, ekfEqOut, ukfEqOut, linearZh
   function drawGrid() {
     ctx.strokeStyle = hairlineColor;
     ctx.lineWidth = 1;
-    for (const y of [-2, -1, 0, 1, 2]) {
+    for (const y of [-4, -2, 0, 2, 4]) {
       const py = yToPx(y);
       ctx.beginPath();
       ctx.moveTo(0, py);
